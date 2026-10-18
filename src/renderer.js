@@ -56,6 +56,14 @@ export function nearestZoomIndex(cellCss) {
   return best;
 }
 
+// New device-pixel offset that keeps the world point at the viewport centre
+// fixed across a DPR change. Snapped cell sizes don't scale linearly with
+// DPR, so scaling the offset alone would drift.
+export function rescaleOffset(offset, viewportCss, oldDpr, newDpr, oldCellSize, newCellSize) {
+  const anchor = ((viewportCss * oldDpr) / 2 - offset) / oldCellSize;
+  return (viewportCss * newDpr) / 2 - anchor * newCellSize;
+}
+
 export function clampZoomIndex(index) {
   return Math.min(ZOOM_LEVELS.length - 1, Math.max(0, Math.round(index)));
 }
@@ -177,9 +185,14 @@ export class Renderer {
   syncDpr() {
     const dpr = window.devicePixelRatio || 1;
     if (dpr === this.dpr) return;
-    this.offsetX *= dpr / this.dpr;
-    this.offsetY *= dpr / this.dpr;
+    const oldDpr = this.dpr;
+    const oldCs = this.cellSize;
     this.dpr = dpr;
+    const newCs = this.cellSize;
+    const cssW = this.cssWidth ?? this.canvas.width / oldDpr;
+    const cssH = this.cssHeight ?? this.canvas.height / oldDpr;
+    this.offsetX = rescaleOffset(this.offsetX, cssW, oldDpr, dpr, oldCs, newCs);
+    this.offsetY = rescaleOffset(this.offsetY, cssH, oldDpr, dpr, oldCs, newCs);
     this.viewChanged();
   }
 

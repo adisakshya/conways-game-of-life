@@ -7,6 +7,7 @@ import {
   fitZoomIndex,
   clampZoomIndex,
   nearestZoomIndex,
+  rescaleOffset,
 } from '../src/renderer.js';
 
 test('zoom levels match the spec', () => {
@@ -69,4 +70,18 @@ test('fitZoomIndex compares the snapped device-pixel board at fractional DPRs', 
       }
     }
   }
+});
+
+test('rescaleOffset keeps the centred world point fixed when snapping is non-linear', () => {
+  // Zoom 3 CSS px: 4 device px @1.25x, 5 device px @1.5x (ratio 1.25, not 1.2).
+  const cssW = 1000;
+  const oldCs = deviceCellSize(3, 1.25);
+  const newCs = deviceCellSize(3, 1.5);
+  const centred = (cssW * 1.25 - 256 * oldCs) / 2;
+  const next = rescaleOffset(centred, cssW, 1.25, 1.5, oldCs, newCs);
+  const boardCentreCss = (next + 128 * newCs) / 1.5;
+  assert.ok(Math.abs(boardCentreCss - cssW / 2) < 1e-9, `board centre at ${boardCentreCss}`);
+  // Naive scaling drifts by ~17 CSS px.
+  const naive = ((centred * 1.2) + 128 * newCs) / 1.5;
+  assert.ok(Math.abs(naive - cssW / 2) > 10);
 });
