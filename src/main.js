@@ -7,6 +7,7 @@ import { createThemeController, readThemeColors } from './theme.js';
 import { getPreset, centerOrigin } from './patterns.js';
 import { Transfer } from './transfer.js';
 import { ShareDialog } from './share.js';
+import { boardToPNG } from './png.js';
 
 const canvas = document.getElementById('board');
 const engine = new Engine();
@@ -148,6 +149,7 @@ const share = new ShareDialog(document, {
   loadSaved: () => announce(transfer.loadSaved()),
   savedInfo: () => transfer.savedInfo(),
   exportRLE: () => transfer.exportRLE(),
+  exportPNG: () => boardToPNG(engine, readThemeColors()),
   link: () => transfer.shareLink(pageBase()),
   parseImport: (text) => transfer.parseImport(text),
   loadImport: (pattern, name) => announce(transfer.loadPattern(pattern, name)),

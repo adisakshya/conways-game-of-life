@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- **Export PNG** in Share & save downloads `life.png`: the whole 256 × 160 board at 4 px per cell, in the current theme's colours, whatever the zoom or pan. A blank board exports as a blank image.
+
 ### Changed
 
 - Redesigned the interface as a canvas-and-sidebar workspace with a Simulation card, a Pattern library and the rules, stacking on phones with Play and Step pinned to the bottom edge.
