@@ -24,6 +24,7 @@ export class ShareDialog {
       save: $('share-save'),
       loadSaved: $('share-load-saved'),
       exportRle: $('share-export'),
+      exportPng: $('share-export-png'),
       importOpen: $('share-import'),
       link: $('share-link'),
       fallback: $('share-link-fallback'),
@@ -71,9 +72,10 @@ export class ShareDialog {
     el.exportRle.addEventListener('click', () => {
       const result = actions.exportRLE();
       if (!result.ok) return this.report(result);
-      this.download(result.text, result.filename);
+      this.download(new Blob([result.text], { type: 'text/plain;charset=utf-8' }), result.filename);
       this.report({ ok: true, message: `Downloaded ${result.filename}: ${result.pattern.cells.length.toLocaleString('en-US')} live cells.` });
     });
+    el.exportPng.addEventListener('click', () => this.exportPng());
     el.link.addEventListener('click', () => this.copyLink());
     el.field.addEventListener('focus', () => el.field.select());
 
@@ -195,8 +197,19 @@ export class ShareDialog {
 
   // --- Export and links ---------------------------------------------------------------
 
-  download(text, filename) {
-    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+  async exportPng() {
+    let blob;
+    try {
+      blob = await this.actions.exportPNG();
+    } catch {
+      return this.report({ ok: false, message: 'The image could not be made. Your board is unchanged.' });
+    }
+    this.download(blob, 'life.png');
+    this.report({ ok: true, message: 'Downloaded life.png.' });
+  }
+
+  download(blob, filename) {
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
