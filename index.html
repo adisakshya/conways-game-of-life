@@ -389,7 +389,7 @@
           <h3>Save, import and share</h3>
           <ul>
             <li><strong>Share &amp; save</strong> opens a panel. <strong>Save board</strong> keeps one setup in this browser (cells, generation and the Restart seed); <strong>Load saved setup</strong> brings it back and pauses, as one undo step.</li>
-            <li><strong>Export RLE</strong> downloads the live cells. <strong>Import…</strong> reads an RLE or plaintext file or pasted text, checks all of it, and only then asks whether to <strong>Load</strong> it on a clean board or <strong>Stamp</strong> it. Bad input is refused and the board stays as it was.</li>
+            <li><strong>Export RLE</strong> downloads the live cells. <strong>Import…</strong> reads an RLE or plaintext file or pasted text, checks all of it, and only then asks whether to <strong>Load</strong> it on a clean board or <strong>Stamp</strong> it. You can also drop a file anywhere on the page to get the same review. Bad input is refused and the board stays as it was.</li>
             <li><strong>Copy share link</strong> puts the live cells in the link itself (limit 2,000 characters). Opening such a link asks before anything changes.</li>
           </ul>
         </section>
@@ -429,5 +429,9 @@
         </section>
       </div>
     </dialog>
+    <!-- Shown only while a file is dragged over the page; it lets drops through. -->
+    <div class="drop-target" id="drop-target" hidden>
+      <p>Drop an RLE or .cells file to review it</p>
+    </div>
   </body>
 </html>
