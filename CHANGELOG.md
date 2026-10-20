@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- Drop an RLE or `.cells` file anywhere on the page to open the same review step as Import (Load on clean board, Stamp onto board, Cancel). A drop indicator shows while a file is dragged over the page; only the first file is used, and files over 256 KiB or with invalid content are refused with the board unchanged.
+
 ### Changed
 
 - Redesigned the interface as a canvas-and-sidebar workspace with a Simulation card, a Pattern library and the rules, stacking on phones with Play and Step pinned to the bottom edge.

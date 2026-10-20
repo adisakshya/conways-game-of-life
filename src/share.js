@@ -6,6 +6,14 @@ import { previewPath } from './patterns.js';
 // Largest file read for an import; a bigger one is refused before it is read.
 export const MAX_IMPORT_BYTES = 262144;
 
+// The file a drop carries: only the first one is used. Null for drags with no file (text, links).
+export function firstDroppedFile(dataTransfer) {
+  return dataTransfer?.files?.[0] ?? null;
+}
+
+// A file's name without its extension, for the review title.
+const nameOf = (file) => file.name.replace(/\.[^.]*$/, '') || 'Imported pattern';
+
 const svgNS = 'http://www.w3.org/2000/svg';
 
 export class ShareDialog {
@@ -38,11 +46,13 @@ export class ShareDialog {
       reviewLoad: $('review-load'),
       reviewStamp: $('review-stamp'),
       reviewCancel: $('review-cancel'),
+      dropTarget: $('drop-target'),
     };
     this.views = [...this.el.dialog.querySelectorAll('[data-view]')];
     // The parsed pattern waiting for the user's choice, and where to go back to.
     this.pending = null;
     this.bind();
+    this.bindDrop(root);
   }
 
   bind() {
@@ -83,12 +93,49 @@ export class ShareDialog {
     el.reviewCancel.addEventListener('click', () => {
       const from = this.pending?.from;
       this.pending = null;
-      // A link offer has nowhere to go back to; an import returns to its form.
-      if (from === 'link') el.dialog.close();
+      // A link or dropped file has nowhere to go back to; anything else returns to the import form.
+      if (from === 'link' || from === 'drop') el.dialog.close();
       else this.showView('import');
     });
     el.reviewLoad.addEventListener('click', () => this.finish('load'));
     el.reviewStamp.addEventListener('click', (e) => this.finish('stamp', e.detail === 0));
+  }
+
+  // A file dropped anywhere on the page goes to the same review as a chosen file. Only drags
+  // that carry files are taken over; the drop indicator shows while one hovers over the page.
+  bindDrop(root) {
+    const { dropTarget } = this.el;
+    let depth = 0;
+    const hasFiles = (e) => [...(e.dataTransfer?.types ?? [])].includes('Files');
+    const hide = () => {
+      depth = 0;
+      dropTarget.hidden = true;
+    };
+    root.addEventListener('dragenter', (e) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      depth += 1;
+      dropTarget.hidden = false;
+    });
+    root.addEventListener('dragover', (e) => {
+      if (!hasFiles(e)) return;
+      // Without this the browser would open the file in the page instead of dropping it.
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    });
+    // dragleave also fires when the pointer moves onto a child element, so count the depth.
+    root.addEventListener('dragleave', (e) => {
+      if (!hasFiles(e)) return;
+      depth = Math.max(0, depth - 1);
+      if (depth === 0) dropTarget.hidden = true;
+    });
+    root.addEventListener('drop', (e) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      hide();
+      const file = firstDroppedFile(e.dataTransfer);
+      if (file) this.importDropped(file);
+    });
   }
 
   show() {
@@ -149,25 +196,42 @@ export class ShareDialog {
 
   // --- Import -------------------------------------------------------------------
 
-  async reviewImport() {
-    const { file, text } = this.el;
-    let source = text.value;
-    const chosen = file.files?.[0];
+  // Checks a chosen or dropped file (refused by size before it is read), or else the pasted text.
+  // Returns a Transfer result; nothing touches the board here.
+  async checkImport(chosen) {
+    const failed = (message) => ({ ok: false, message: `${message} Nothing was imported and your board is unchanged.` });
+    let source = this.el.text.value;
     if (chosen) {
       if (chosen.size > MAX_IMPORT_BYTES) {
-        return this.report({ ok: false, message: `That file is ${Math.ceil(chosen.size / 1024).toLocaleString('en-US')} KiB; the limit is ${MAX_IMPORT_BYTES / 1024} KiB. Nothing was imported.` });
+        return failed(`That file is ${Math.ceil(chosen.size / 1024).toLocaleString('en-US')} KiB; the limit is ${MAX_IMPORT_BYTES / 1024} KiB.`);
       }
       try {
         source = await chosen.text();
       } catch {
-        return this.report({ ok: false, message: 'The file could not be read. Nothing was imported.' });
+        return failed('The file could not be read.');
       }
     }
     const result = this.actions.parseImport(source);
-    if (!result.ok) return this.report({ ok: false, message: `${result.message} Nothing was imported and your board is unchanged.` });
-    const name = chosen ? chosen.name.replace(/\.[^.]*$/, '') || 'Imported pattern' : 'Imported pattern';
-    this.pending = { pattern: result.pattern, name, from: 'import' };
+    return result.ok ? result : failed(result.message);
+  }
+
+  async reviewImport() {
+    const chosen = this.el.file.files?.[0];
+    const result = await this.checkImport(chosen);
+    if (!result.ok) return this.report(result);
+    this.pending = { pattern: result.pattern, name: chosen ? nameOf(chosen) : 'Imported pattern', from: 'import' };
     this.showReview();
+  }
+
+  // A file dropped on the page: a failure opens the Import form with the error, so the board is untouched.
+  async importDropped(file) {
+    const result = await this.checkImport(file);
+    if (!result.ok) {
+      this.show();
+      this.showView('import');
+      return this.report(result);
+    }
+    this.offer(result.pattern, nameOf(file), 'drop');
   }
 
   showReview() {
