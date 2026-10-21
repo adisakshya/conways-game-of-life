@@ -6,6 +6,8 @@ import { Engine } from '../src/engine.js';
 const EXPECTED_CELLS = {
   glider: 5,
   lwss: 9,
+  mwss: 11,
+  hwss: 13,
   gosper: 36,
   pulsar: 48,
   pentadecathlon: 12,
