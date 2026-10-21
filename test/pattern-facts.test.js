@@ -21,7 +21,7 @@ function shape(engine) {
 }
 
 test('every preset has a known category and a description', () => {
-  assert.equal(PRESETS.length, 8);
+  assert.equal(PRESETS.length, 12);
   for (const p of PRESETS) {
     assert.ok(CATEGORIES[p.category], `${p.id} category`);
     assert.ok(p.description.length > 10, `${p.id} description`);
@@ -34,6 +34,17 @@ test('spaceships and oscillators repeat their shape after the stated period', ()
     const start = shape(run(p, 0));
     assert.equal(shape(run(p, p.period)), start, `${id} repeats after ${p.period}`);
     for (let n = 1; n < p.period; n++) assert.notEqual(shape(run(p, n)), start, `${id} differs at generation ${n}`);
+  }
+});
+
+test('still lifes are unchanged after one generation and have the documented cell counts', () => {
+  for (const [id, count] of [['block', 4], ['beehive', 6], ['loaf', 7], ['boat', 5]]) {
+    const p = getPreset(id);
+    assert.ok(p, `${id} preset exists`);
+    assert.equal(p.category, 'still-life', `${id} category`);
+    assert.equal(p.period, 1, `${id} period`);
+    assert.equal(p.cells.length, count, `${id} cell count`);
+    assert.equal(shape(run(p, 1)), shape(run(p, 0)), `${id} is unchanged`);
   }
 });
 
