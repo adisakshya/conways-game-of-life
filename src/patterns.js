@@ -20,6 +20,24 @@ O....
 O...O
 OOOO.`,
   },
+  mwss: {
+    name: 'Middleweight spaceship',
+    source: `
+...O..
+.O...O
+O.....
+O....O
+OOOOO.`,
+  },
+  hwss: {
+    name: 'Heavyweight spaceship',
+    source: `
+...OO..
+.O....O
+O......
+O.....O
+OOOOOO.`,
+  },
   gosper: {
     name: 'Gosper glider gun',
     source: `
@@ -255,6 +273,16 @@ const PRESET_META = {
     description: 'Travels one cell diagonally every 4 generations.',
   },
   lwss: {
+    category: 'spaceship',
+    period: 4,
+    description: 'Travels two cells sideways every 4 generations.',
+  },
+  mwss: {
+    category: 'spaceship',
+    period: 4,
+    description: 'Travels two cells sideways every 4 generations.',
+  },
+  hwss: {
     category: 'spaceship',
     period: 4,
     description: 'Travels two cells sideways every 4 generations.',

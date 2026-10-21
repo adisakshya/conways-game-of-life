@@ -21,7 +21,7 @@ function shape(engine) {
 }
 
 test('every preset has a known category and a description', () => {
-  assert.equal(PRESETS.length, 8);
+  assert.equal(PRESETS.length, 10);
   for (const p of PRESETS) {
     assert.ok(CATEGORIES[p.category], `${p.id} category`);
     assert.ok(p.description.length > 10, `${p.id} description`);
@@ -29,7 +29,7 @@ test('every preset has a known category and a description', () => {
 });
 
 test('spaceships and oscillators repeat their shape after the stated period', () => {
-  for (const id of ['glider', 'lwss', 'pulsar', 'pentadecathlon']) {
+  for (const id of ['glider', 'lwss', 'mwss', 'hwss', 'pulsar', 'pentadecathlon']) {
     const p = getPreset(id);
     const start = shape(run(p, 0));
     assert.equal(shape(run(p, p.period)), start, `${id} repeats after ${p.period}`);
@@ -44,7 +44,7 @@ test('spaceships actually move and oscillators stay put', () => {
     for (let y = 0; y < engine.height; y++) for (let x = 0; x < engine.width; x++) if (engine.get(x, y)) { minX = Math.min(minX, x); minY = Math.min(minY, y); }
     return [minX, minY];
   };
-  for (const id of ['glider', 'lwss']) {
+  for (const id of ['glider', 'lwss', 'mwss', 'hwss']) {
     const p = getPreset(id);
     assert.notDeepEqual(origin(run(p, p.period)), origin(run(p, 0)), `${id} moved`);
   }
@@ -85,3 +85,4 @@ test('centerOrigin puts the bounding box in the middle of the board', () => {
   assert.ok(Math.abs(256 - (o.x + gun.width) - o.x) <= 1);
   assert.ok(Math.abs(160 - (o.y + gun.height) - o.y) <= 1);
 });
+
