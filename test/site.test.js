@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, readdir, access } from 'node:fs/promises';
-
+import { readFileSync as readIndexHtml } from 'node:fs';
+import { test as ariaTest } from 'node:test';
+import ariaAssert from 'node:assert/strict';
 const root = new URL('../', import.meta.url);
 
 // Asset references only; "#id" fragments point inside the page (the icon sprite).
@@ -60,4 +62,24 @@ test('the page is titled and headed Conway\'s Game of Life, with no other brandi
 test('the board is described as finite and wrapping, never infinite', async () => {
   const html = await readFile(new URL('index.html', root), 'utf8');
   assert.ok(!/infinite/i.test(html), 'index.html must not call the board infinite');
+});
+ariaTest('control buttons declare their keyboard shortcuts with aria-keyshortcuts', () => {
+  const html = readIndexHtml(new URL('../index.html', import.meta.url), 'utf8');
+  const expected = {
+    play: 'Space',
+    step: 'N',
+    clear: 'C',
+    fit: 'F',
+    'zoom-in': '+ =',
+    'zoom-out': '- _',
+    undo: 'Control+Z Meta+Z',
+    redo: 'Control+Shift+Z Meta+Shift+Z Control+Y',
+  };
+  for (const [id, keys] of Object.entries(expected)) {
+    const tag = html.match(new RegExp(`<button[^>]*\\sid="${id}"[^>]*>`));
+    ariaAssert.ok(tag, `#${id} button exists`);
+    const attr = tag[0].match(/aria-keyshortcuts="([^"]*)"/);
+    ariaAssert.ok(attr, `#${id} has aria-keyshortcuts`);
+    ariaAssert.equal(attr[1], keys, `#${id} shortcut value`);
+  }
 });
