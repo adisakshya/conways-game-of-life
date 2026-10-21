@@ -6,6 +6,14 @@ import { previewPath } from './patterns.js';
 // Largest file read for an import; a bigger one is refused before it is read.
 export const MAX_IMPORT_BYTES = 262144;
 
+export function pickImportSource(file, text, lastEdited) {
+  if (lastEdited === 'text' && text.trim()) return { type: 'text', value: text };
+  if (lastEdited === 'file' && file) return { type: 'file', value: file };
+  if (text.trim()) return { type: 'text', value: text };
+  if (file) return { type: 'file', value: file };
+  return { type: 'text', value: text };
+}
+
 const svgNS = 'http://www.w3.org/2000/svg';
 
 export class ShareDialog {
@@ -78,6 +86,8 @@ export class ShareDialog {
     el.field.addEventListener('focus', () => el.field.select());
 
     el.importOpen.addEventListener('click', () => this.showView('import'));
+    el.file.addEventListener('change', () => { this.lastImportEdited = 'file'; });
+    el.text.addEventListener('input', () => { this.lastImportEdited = 'text'; });
     el.back.addEventListener('click', () => this.showView('menu'));
     el.review.addEventListener('click', () => this.reviewImport());
     el.reviewCancel.addEventListener('click', () => {
@@ -92,6 +102,9 @@ export class ShareDialog {
   }
 
   show() {
+    this.el.file.value = '';
+    this.el.text.value = '';
+    this.lastImportEdited = null;
     this.clear();
     this.showView('menu');
     this.refreshSaved();
@@ -151,8 +164,9 @@ export class ShareDialog {
 
   async reviewImport() {
     const { file, text } = this.el;
-    let source = text.value;
-    const chosen = file.files?.[0];
+    const selected = pickImportSource(file.files?.[0], text.value, this.lastImportEdited);
+    let source = selected.value;
+    const chosen = selected.type === 'file' ? selected.value : null;
     if (chosen) {
       if (chosen.size > MAX_IMPORT_BYTES) {
         return this.report({ ok: false, message: `That file is ${Math.ceil(chosen.size / 1024).toLocaleString('en-US')} KiB; the limit is ${MAX_IMPORT_BYTES / 1024} KiB. Nothing was imported.` });
