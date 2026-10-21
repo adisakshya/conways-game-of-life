@@ -78,6 +78,34 @@ OO..OOO`,
 OO......
 .O...OOO`,
   },
+  block: {
+    name: 'Block',
+    source: `
+OO
+OO`,
+  },
+  beehive: {
+    name: 'Beehive',
+    source: `
+.OO.
+O..O
+.OO.`,
+  },
+  loaf: {
+    name: 'Loaf',
+    source: `
+.OO.
+O..O
+.O.O
+..O.`,
+  },
+  boat: {
+    name: 'Boat',
+    source: `
+OO.
+O.O
+.O.`,
+  },
 };
 
 function normalize(cells) {
@@ -238,6 +266,7 @@ export function rotate(pattern) {
 }
 
 export const CATEGORIES = {
+  'still-life': 'Still life',
   spaceship: 'Spaceship',
   oscillator: 'Oscillator',
   gun: 'Gun',
@@ -287,6 +316,10 @@ const PRESET_META = {
     vanishesAfter: 130,
     description: 'Seven cells that vanish completely after 130 generations.',
   },
+  block: { category: 'still-life', period: 1, description: 'A four-cell still life.' },
+  beehive: { category: 'still-life', period: 1, description: 'A six-cell still life.' },
+  loaf: { category: 'still-life', period: 1, description: 'A seven-cell still life.' },
+  boat: { category: 'still-life', period: 1, description: 'A five-cell still life.' },
 };
 
 export const PRESETS = Object.entries(PRESET_SOURCES).map(([id, { name, source }]) => ({

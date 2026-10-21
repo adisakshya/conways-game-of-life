@@ -12,6 +12,10 @@ const EXPECTED_CELLS = {
   rpentomino: 5,
   acorn: 7,
   diehard: 7,
+  block: 4,
+  beehive: 6,
+  loaf: 7,
+  boat: 5,
 };
 
 function stamp(engine, pattern, dx, dy) {
